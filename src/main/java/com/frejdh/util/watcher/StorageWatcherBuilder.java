@@ -124,20 +124,11 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
-	 * Creates a new Watcher that can be configured. Default is the classpath directory.
+	 * Creates a new Watcher that can be configured.
+	 * Not to be misstaken for {@link #build()}
 	 * @return A new builder instance
 	 */
 	public StorageWatcherBuilder createNext() {
-		return new StorageWatcherBuilder(this);
-	}
-
-	/**
-	 * Creates a new Watcher that can be configured.
-	 * Not to be misstaken for {@link #build()}
-	 * @param directoryToWatch Directory to watch over
-	 * @return A new builder instance
-	 */
-	public StorageWatcherBuilder createNext(String directoryToWatch) {
 		return new StorageWatcherBuilder(this);
 	}
 

@@ -2,41 +2,146 @@ package com.frejdh.util;
 
 import com.frejdh.util.watcher.StorageWatcher;
 import com.frejdh.util.watcher.StorageWatcherBuilder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.StandardWatchEventKinds;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class WatcherTests {
 
 	private Logger logger = Logger.getLogger("WatcherTests");
 
-	private boolean flag1;
-	private boolean flag2;
-	private boolean flag3;
+	private boolean flagCreate;
+	private boolean flagModify;
+	private boolean flagDelete;
+
+	private final long DEFAULT_SLEEP = 1500;
 
 	@Before
 	public void reset() {
-		flag1 = flag2 = flag3 = false;
+		flagCreate = flagModify = flagDelete = false;
+	}
+
+	@After
+	public void cleanup() {
+		FileHelper.cleanup();
 	}
 
 	@Test
 	public void watchOneFileCreation() throws Exception {
-		String filename = "test1.txt";
+		String filename = FileHelper.nextFilename();
 
 		StorageWatcher watcher = new StorageWatcherBuilder()
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
 				.onChanged(() -> {
-					flag1 = true;
-					System.out.println("YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEES");
+					flagCreate = true;
+					logger.info("Flag Create set");
 				})
 				.build();
 		watcher.start();
 		FileHelper.createFile(filename);
-		Thread.sleep(2000);
-		Assert.assertTrue("Flag 1 not set", flag1);
+		Thread.sleep(DEFAULT_SLEEP);
+		Assert.assertTrue("Flag Modify not set", flagCreate);
+	}
+
+	@Test
+	public void nestedBuilderCreateAndModify() throws Exception {
+		String filename = FileHelper.nextFilename();
+
+		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
+				.watchFile(filename)
+				.onChanged(() -> {
+					flagCreate = true;
+					logger.info("Flag Create set");
+				})
+				.createNext()
+				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
+				.watchFile(filename)
+				.onChanged(() -> {
+					flagModify = true;
+					logger.info("Flag Modify set");
+				})
+				.build();
+		watcher.start();
+
+
+		FileHelper.createFile(filename);
+		FileHelper.writeToExistingFile(filename, "test of modification");
+		Thread.sleep(DEFAULT_SLEEP);
+		Assert.assertTrue("Flag Create not set", flagCreate);
+		Assert.assertTrue("Flag Modify not set", flagModify);
+	}
+
+	@Test
+	public void watchDirectoryForModifications() throws Exception {
+		String filename = FileHelper.nextFilename();
+
+		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
+				.watchDirectory("")
+				.onChanged(() -> {
+					flagModify = true;
+					logger.info("Flag Modify set");
+				})
+				.build();
+		watcher.start();
+
+
+		FileHelper.createFile(filename);
+		FileHelper.writeToExistingFile(filename, "test of modification");
+		Thread.sleep(DEFAULT_SLEEP);
+		Assert.assertTrue("Flag Modify not set", flagModify);
+	}
+
+	@Test
+	public void ignoresOtherFiles() throws Exception {
+		String filename = FileHelper.nextFilename();
+
+		AtomicInteger numberOfInvokes = new AtomicInteger();
+		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
+				.watchFile(filename)
+				.onChanged(() -> {
+					flagCreate = true;
+					numberOfInvokes.getAndIncrement();
+					logger.info("Flag Create set");
+				})
+				.build();
+		watcher.start();
+
+
+		FileHelper.createFile(filename);
+		FileHelper.createFile(FileHelper.nextFilename());
+		FileHelper.writeToExistingFile(filename, "test of modification");
+		Thread.sleep(DEFAULT_SLEEP);
+		Assert.assertTrue("Flag Modify not set", flagCreate);
+		Assert.assertEquals("Unexpected amount of invokes", 1, numberOfInvokes.get());
+	}
+
+	@Test
+	public void deleteFlagWorks() throws Exception {
+		String filename = FileHelper.nextFilename();
+
+		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.specifyEvent(StandardWatchEventKinds.ENTRY_DELETE)
+				.watchDirectory("")
+				.watchFile(filename)
+				.onChanged(() -> {
+					flagDelete = true;
+					logger.info("Flag Delete set");
+				})
+				.build();
+		watcher.start();
+
+		FileHelper.createFile(filename);
+		FileHelper.deleteFile(filename);
+		Thread.sleep(DEFAULT_SLEEP);
+		Assert.assertTrue("Flag Delete not set", flagDelete);
 	}
 }
