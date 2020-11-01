@@ -6,20 +6,20 @@ Template for my Maven libraries.
 Useful arguments...
 
 ## Adding the dependency
-Change the URLs!
+
 ```
 <dependencies>
     <dependency>
         <groupId>com.frejdh.util</groupId>
-        <artifactId>template</artifactId>
+        <artifactId>file-watcher</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </dependency>
 </dependencies>
 
 <repositories> <!-- Required in order to resolve this package -->
     <repository>
-        <id>mvn-lib-template</id>
-        <url>https://raw.github.com/Frejdh/mvn-lib-template/mvn-repo/</url>
+        <id>mvn-lib-file-watcher</id>
+        <url>https://raw.github.com/Frejdh/mvn-lib-file-watcher/mvn-repo/</url>
     </repository>
 </repositories>
 ```

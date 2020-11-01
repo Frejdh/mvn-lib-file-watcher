@@ -11,8 +11,7 @@
     </parent>
 
     <!-- Change this from the template -->
-    <groupId>com.frejdh.util</groupId>
-    <artifactId>must-set-this-id-for-artifact-please-do-this-soon</artifactId>
+    <artifactId>file-watcher</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -22,15 +21,21 @@
 
         <!-- Deployment for artifacts. Remember to change to a valid repository! -->
         <github.repository.owner>Frejdh</github.repository.owner>
-        <github.repository.name>mvn-lib-must-set-this-property-for-artifact-publishing-please-do-this-soon</github.repository.name>
+        <github.repository.name>mvn-lib-file-watcher</github.repository.name>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13</version>
+            <version>4.13.1</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency> <!-- Useful annotations -->
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>20.1.0</version>
         </dependency>
     </dependencies>
 
