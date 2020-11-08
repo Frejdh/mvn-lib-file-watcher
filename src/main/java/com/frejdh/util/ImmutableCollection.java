@@ -79,12 +79,26 @@ public class ImmutableCollection<T> implements Iterable<T> {
 	}
 
 	/**
-	 * Deep copies the collection (new reference).
+	 * Deep copy into another immutable reference.
 	 * @return A new instance of the collection.
 	 */
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	public ImmutableCollection<T> clone() {
 		return new ImmutableCollection<>(collection);
+	}
+
+	/**
+	 * Deep copies the collection.
+	 * The new collection is mutable, assuming that the implementation passed in the constructor was mutable to begin with.
+	 * @return A new instance of the collection.
+	 */
+	@SuppressWarnings("unchecked")
+	public Collection<T> cloneToMutable() {
+		try {
+			return (Collection<T>) type.getConstructor(Collection.class).newInstance(collection);
+		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+			return new ArrayList<>(collection);
+		}
 	}
 
 	/**

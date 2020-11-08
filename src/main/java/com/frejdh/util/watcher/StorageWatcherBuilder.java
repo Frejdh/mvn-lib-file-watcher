@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +72,14 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
+	 * See {@link #specifyEvents(WatchEvent.Kind[])}.
+	 */
+	public StorageWatcherBuilder specifyEvents(Collection<WatchEvent.Kind<Path>> events) {
+		eventsToWatch.addAll(events);
+		return this;
+	}
+
+	/**
 	 * Can be combined with multiple calls and/or {@link #watchFiles(String...)}
 	 * @param filename File to watch
 	 * @return The builder reference
@@ -91,6 +100,14 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
+	 * See {@link #watchFiles(String...)}.
+	 */
+	public StorageWatcherBuilder watchFiles(Collection<String> filenames) {
+		filesToLimitTo.addAll(filenames);
+		return this;
+	}
+
+	/**
 	 * Can be combined with multiple calls and/or {@link #watchDirectories(String...)}
 	 * @param directory Directory to watch
 	 * @return The same builder reference
@@ -107,6 +124,14 @@ public class StorageWatcherBuilder {
 	 */
 	public StorageWatcherBuilder watchDirectories(String... directories) {
 		directoriesToWatch.addAll(Arrays.asList(directories));
+		return this;
+	}
+
+	/**
+	 * See {@link #watchDirectories(String...)}.
+	 */
+	public StorageWatcherBuilder watchDirectories(Collection<String> directories) {
+		directoriesToWatch.addAll(directories);
 		return this;
 	}
 
