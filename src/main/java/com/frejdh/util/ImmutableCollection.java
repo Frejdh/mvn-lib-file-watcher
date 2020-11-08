@@ -8,24 +8,26 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-
+/**
+ * Immutable collection due to lacking support in native Java.
+ * @param <T> Type parameter for the collection.
+ */
 @SuppressWarnings("unused")
 public class ImmutableCollection<T> implements Iterable<T> {
 
-	private final Collection<T> list;
+	private final Collection<T> collection;
 	private final Class<?> type;
 
 	@SafeVarargs
 	public ImmutableCollection(T... elements) {
-		this.list = Arrays.asList(elements);
+		this.collection = Arrays.asList(elements);
 		this.type = elements.length > 0 ? elements[0].getClass() : ArrayList.class;
 	}
 
 	public ImmutableCollection(Collection<T> collection) {
-		this.list = collection != null ? copy(collection) : new ArrayList<>();
+		this.collection = collection != null ? copy(collection) : new ArrayList<>();
 		this.type = collection != null && collection.size() > 0 ? collection.iterator().next().getClass() : ArrayList.class;
 	}
 
@@ -41,64 +43,114 @@ public class ImmutableCollection<T> implements Iterable<T> {
 		}
 	}
 
+	/**
+	 * Same as {@link Collection#size()}.
+	 */
 	public int size() {
-		return this.list.size();
+		return this.collection.size();
 	}
 
+	/**
+	 * Same as {@link Collection#isEmpty()}.
+	 */
 	public boolean isEmpty() {
-		return this.list.isEmpty();
+		return this.collection.isEmpty();
 	}
 
-	public boolean contains(T o) {
-		return this.list.contains(o);
+	/**
+	 * Same as {@link Collection#contains(Object)}.
+	 */
+	public boolean contains(T element) {
+		return this.collection.contains(element);
 	}
 
+	/**
+	 * Same as {@link Collection#containsAll(Collection)}.
+	 */
+	public boolean containsAll(ImmutableCollection<T> elements) {
+		return this.collection.containsAll(elements.collection);
+	}
+
+	/**
+	 * Same as {@link Collection#containsAll(Collection)}.
+	 */
+	public boolean containsAll(Collection<?> elements) {
+		return this.collection.containsAll(elements);
+	}
+
+	/**
+	 * Deep copies the collection (new reference).
+	 * @return A new instance of the collection.
+	 */
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	public ImmutableCollection<T> clone() {
-		return new ImmutableCollection<>(list);
+		return new ImmutableCollection<>(collection);
 	}
 
+	/**
+	 * Same as {@link Collection#toArray()}.
+	 */
 	@SuppressWarnings("unchecked")
 	public T[] toArray() {
-		return toArray((T[]) Array.newInstance(type, this.list.size()));
+		return toArray((T[]) Array.newInstance(type, this.collection.size()));
 	}
 
-	public T[] toArray(T[] a) {
-		return this.list.toArray(a);
+	/**
+	 * Same as {@link Collection#toArray(Object[])}.
+	 */
+	public T[] toArray(T[] array) {
+		return this.collection.toArray(array);
 	}
 
+	/**
+	 * Same as {@link Collection#equals(Object)}.
+	 */
 	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
-	public boolean equals(Object o) {
-		return this.list.equals(o);
+	public boolean equals(Object object) {
+		return this.collection.equals(object);
 	}
 
+	/**
+	 * Same as {@link Collection#hashCode()}.
+	 */
 	public int hashCode() {
-		return this.list.hashCode();
+		return this.collection.hashCode();
 	}
 
+	/**
+	 * Same as {@link Collection#iterator()}.
+	 */
 	@NotNull
 	public Iterator<T> iterator() {
-		return this.list.iterator();
+		return this.collection.iterator();
 	}
 
+	/**
+	 * Same as {@link Collection#forEach(Consumer)}.
+	 */
 	public void forEach(Consumer<? super T> action) {
-		this.list.forEach(action);
+		this.collection.forEach(action);
 	}
 
-	public boolean containsAll(Collection<?> c) {
-		return this.list.containsAll(c);
-	}
-
+	/**
+	 * Same as {@link Collection#toString()}.
+	 */
 	public String toString() {
-		return this.list.toString();
+		return this.collection.toString();
 	}
 
+	/**
+	 * Same as {@link Collection#stream()}.
+	 */
 	public Stream<T> stream() {
-		return this.list.stream();
+		return this.collection.stream();
 	}
 
+	/**
+	 * Same as {@link Collection#parallelStream()}.
+	 */
 	public Stream<T> parallelStream() {
-		return this.list.parallelStream();
+		return this.collection.parallelStream();
 	}
 }

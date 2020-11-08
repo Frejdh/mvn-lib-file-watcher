@@ -14,7 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Builder for the @{@link StorageWatcher} class.
+ */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class StorageWatcherBuilder {
 
@@ -26,6 +28,9 @@ public class StorageWatcherBuilder {
 	private Long watcherInterval;
 	private TimeUnit watcherIntervalUnit;
 
+	/**
+	 * Create a builder.
+	 */
 	public StorageWatcherBuilder() { }
 
 	private StorageWatcherBuilder(StorageWatcherBuilder parent) {
@@ -33,10 +38,7 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
-	 * Same as:
-	 * <code>
-	 *     new StorageWatcherBuilder();
-	 * </code>
+	 * Equivalent to calling the empty constructor {@link #StorageWatcherBuilder()}
 	 * @return A new builder
 	 */
 	public static StorageWatcherBuilder getBuilder() {
@@ -44,7 +46,13 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
-	 * Use java.nio.file.StandardWatchEventKinds
+	 * Events to watch for such as: modify, create or delete. Can be combined with multiple calls and/or {@link #specifyEvents(WatchEvent.Kind[])}.
+	 * Use the static variables defined in {@link java.nio.file.StandardWatchEventKinds}. For example: <br>
+	 * <code>
+	 * StandardWatchEventKinds.ENTRY_CREATE
+	 * </code>
+	 * @param event Event to watch.
+	 * @return The same builder instance.
 	 */
 	public StorageWatcherBuilder specifyEvent(WatchEvent.Kind<Path> event) {
 		eventsToWatch.add(event);
@@ -52,7 +60,9 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
-	 * Use java.nio.file.StandardWatchEventKinds
+	 * The same as calling {@link #specifyEvent(WatchEvent.Kind)} multiple times. Can be combined with {@link #specifyEvent(WatchEvent.Kind)}.
+	 * @param events Events to watch
+	 * @return The same builder instance.
 	 */
 	@SafeVarargs
 	public final StorageWatcherBuilder specifyEvents(WatchEvent.Kind<Path>... events) {
@@ -71,7 +81,7 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
-	 * Can be combined with multiple calls and/or {@link #watchFile(String)}
+	 * The same as calling {@link #watchFile(String)} multiple times. Can be combined with {@link #watchFile(String)}
 	 * @param filenames Files to watch
 	 * @return The builder reference
 	 */
@@ -91,7 +101,7 @@ public class StorageWatcherBuilder {
 	}
 
 	/**
-	 * Can be combined with multiple calls and/or {@link #watchDirectory(String)}
+	 * The same as calling {@link #watchDirectory(String)} multiple times. Can be combined with {@link #watchDirectory(String)}
 	 * @param directories Directories to watch
 	 * @return The same builder reference
 	 */
@@ -102,8 +112,9 @@ public class StorageWatcherBuilder {
 
 	/**
 	 * Set the interval for checking the directories/files.
-	 * @param watcherInterval Interval to check. Null or <= 0: {@link StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL}
-	 * @param watcherIntervalUnit Unit for the interval. Null: {@link StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL_UNIT}
+	 * <strong>Shared between all of the watcher components!</strong>
+	 * @param watcherInterval Interval to check. (Null or <= 0) = {@link StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL}
+	 * @param watcherIntervalUnit Unit for the interval. Null = {@link StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL_UNIT}
 	 * @return The same builder reference
 	 */
 	public StorageWatcherBuilder interval(@Nullable Long watcherInterval, @Nullable TimeUnit watcherIntervalUnit) {
@@ -118,6 +129,25 @@ public class StorageWatcherBuilder {
 		return this;
 	}
 
+	/**
+	 * Same as {@link #interval(Long, TimeUnit)}, but which accepts an integer as parameter.
+	 */
+	public StorageWatcherBuilder interval(@Nullable Integer watcherInterval, @Nullable TimeUnit watcherIntervalUnit) {
+		return interval((watcherInterval != null) ? Integer.toUnsignedLong(watcherInterval) : null, watcherIntervalUnit);
+	}
+
+	/**
+	 * Set what to do whenever an event is detected. For example:
+	 * <code>
+	 * new StorageWatcherBuilder()
+	 *     .onChanged(() -> {
+	 *         System.out.println("An event was detected!");
+	 *     })
+	 *     .start();
+	 * </code>
+	 * @param onChanged
+	 * @return The same builder instance.
+	 */
 	public StorageWatcherBuilder onChanged(StorageWatcher.OnChanged onChanged) {
 		this.onChanged = onChanged;
 		return this;
@@ -125,8 +155,8 @@ public class StorageWatcherBuilder {
 
 	/**
 	 * Creates a new Watcher that can be configured.
-	 * Not to be misstaken for {@link #build()}
-	 * @return A new builder instance
+	 * Not to be misstaken for {@link #buildComponents()}
+	 * @return A <strong>new</strong> builder instance
 	 */
 	public StorageWatcherBuilder createNext() {
 		return new StorageWatcherBuilder(this);
@@ -136,22 +166,26 @@ public class StorageWatcherBuilder {
 	 * Builds the {@link StorageWatcher} instance.
 	 * @return A watcher instance.
 	 */
-	public StorageWatcher build() {
+	public StorageWatcher buildComponents() {
 		return new StorageWatcher(
-				build(new ArrayList<>())
+				buildComponents(new ArrayList<>()),
+				watcherInterval,
+				watcherIntervalUnit
 		);
-
 	}
 
-	private List<StorageWatcherComponent> build(List<StorageWatcherComponent> currentComponents) {
+	/**
+	 * Helper method. Builds all of the components that should be used by the watcher.
+	 * @param currentComponents List of the current components (for recursive usages).
+	 * @return The final list with all of the components.
+	 */
+	private List<StorageWatcherComponent> buildComponents(List<StorageWatcherComponent> currentComponents) {
 		for (Map.Entry<String, Set<String>> grouping : groupByDirectories(directoriesToWatch, filesToLimitTo).entrySet()) {
 			StorageWatcherProperties settings = new StorageWatcherProperties(
 					grouping.getValue(),
 					eventsToWatch,
 					grouping.getKey(),
-					onChanged,
-					watcherInterval,
-					watcherIntervalUnit
+					onChanged
 			);
 
 			StorageWatcherComponent watcher = null;
@@ -164,11 +198,17 @@ public class StorageWatcherBuilder {
 		}
 
 		if (parentBuilder != null) {
-			return parentBuilder.build(currentComponents);
+			return parentBuilder.buildComponents(currentComponents);
 		}
 		return currentComponents;
 	}
 
+	/**
+	 * Helper method. Group everything by directories.
+	 * @param directories The directories to watch.
+	 * @param filenames The files to watch.
+	 * @return A map with the directory as key, and a collection of files as the value.
+	 */
 	private Map<String, Set<String>> groupByDirectories(Set<String> directories, Set<String> filenames) {
 		Map<String, Set<String>> group = new HashMap<>();
 

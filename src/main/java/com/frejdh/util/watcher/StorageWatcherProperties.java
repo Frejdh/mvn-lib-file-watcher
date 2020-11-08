@@ -2,7 +2,6 @@ package com.frejdh.util.watcher;
 
 import com.frejdh.util.ImmutableCollection;
 import org.jetbrains.annotations.Nullable;
-
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
@@ -10,7 +9,9 @@ import java.nio.file.WatchEvent;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Configuration properties for a watcher component.
+ */
 class StorageWatcherProperties {
 
 	public static final ImmutableCollection<WatchEvent.Kind<Path>> DEFAULT_WATCH_EVENT =
@@ -27,38 +28,31 @@ class StorageWatcherProperties {
 	public final Path directory;
 	public final StorageWatcher.OnChanged onChanged;
 
-	public final long watcherInterval;
-	public final TimeUnit watcherIntervalUnit;
-
 	StorageWatcherProperties(ImmutableCollection<String> files,
 							 @Nullable ImmutableCollection<WatchEvent.Kind<Path>> eventsToWatch,
 							 String directory,
-							 StorageWatcher.OnChanged onChanged,
-							 @Nullable Long watcherInterval,
-							 @Nullable TimeUnit watcherIntervalUnit) {
+							 StorageWatcher.OnChanged onChanged) {
 		this.files = files;
 		this.eventsToWatch = eventsToWatch == null || eventsToWatch.isEmpty() ? DEFAULT_WATCH_EVENT : eventsToWatch;
 		this.directory = FileSystems.getDefault().getPath(directory);
 		this.onChanged = onChanged;
-		this.watcherInterval = watcherInterval != null ? watcherInterval : DEFAULT_WATCHER_INTERVAL;
-		this.watcherIntervalUnit = watcherIntervalUnit != null ? watcherIntervalUnit : DEFAULT_WATCHER_INTERVAL_UNIT;
 	}
 
 	StorageWatcherProperties(Collection<String> files,
 							 @Nullable Collection<WatchEvent.Kind<Path>> eventsToWatch,
 							 String directory,
-							 StorageWatcher.OnChanged onChanged,
-							 @Nullable Long watcherInterval,
-							 @Nullable TimeUnit watcherIntervalUnit) {
+							 StorageWatcher.OnChanged onChanged) {
 		this(new ImmutableCollection<>(files),
 			 new ImmutableCollection<>(eventsToWatch),
 			 directory,
-			 onChanged,
-			 watcherInterval,
-			 watcherIntervalUnit
+			 onChanged
 		);
 	}
 
+	/**
+	 * Check whether the current configuration is set to checking out all files.
+	 * @return True if all files should be watched inside of the directory.
+	 */
 	public boolean isWatchingAllFiles() {
 		return files.size() == 0;
 	}

@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.StandardWatchEventKinds;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -36,13 +37,14 @@ public class WatcherTests {
 		String filename = FileHelper.nextFilename();
 
 		StorageWatcher watcher = new StorageWatcherBuilder()
+				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
 				.onChanged(() -> {
 					flagCreate = true;
 					logger.info("Flag Create set");
 				})
-				.build();
+				.buildComponents();
 		watcher.start();
 		FileHelper.createFile(filename);
 		Thread.sleep(DEFAULT_SLEEP);
@@ -54,6 +56,7 @@ public class WatcherTests {
 		String filename = FileHelper.nextFilename();
 
 		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
 				.onChanged(() -> {
@@ -67,9 +70,8 @@ public class WatcherTests {
 					flagModify = true;
 					logger.info("Flag Modify set");
 				})
-				.build();
+				.buildComponents();
 		watcher.start();
-
 
 		FileHelper.createFile(filename);
 		FileHelper.writeToExistingFile(filename, "test of modification");
@@ -83,13 +85,14 @@ public class WatcherTests {
 		String filename = FileHelper.nextFilename();
 
 		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
 				.watchDirectory("")
 				.onChanged(() -> {
 					flagModify = true;
 					logger.info("Flag Modify set");
 				})
-				.build();
+				.buildComponents();
 		watcher.start();
 
 
@@ -105,6 +108,7 @@ public class WatcherTests {
 
 		AtomicInteger numberOfInvokes = new AtomicInteger();
 		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
 				.onChanged(() -> {
@@ -112,7 +116,7 @@ public class WatcherTests {
 					numberOfInvokes.getAndIncrement();
 					logger.info("Flag Create set");
 				})
-				.build();
+				.buildComponents();
 		watcher.start();
 
 
@@ -129,6 +133,7 @@ public class WatcherTests {
 		String filename = FileHelper.nextFilename();
 
 		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_DELETE)
 				.watchDirectory("")
 				.watchFile(filename)
@@ -136,7 +141,7 @@ public class WatcherTests {
 					flagDelete = true;
 					logger.info("Flag Delete set");
 				})
-				.build();
+				.buildComponents();
 		watcher.start();
 
 		FileHelper.createFile(filename);
