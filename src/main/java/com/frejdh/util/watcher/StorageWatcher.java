@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class StorageWatcher extends Thread {
 
 	public interface OnChanged {
-		void onChanged();
+		void onChanged(String directory, String filename);
 	}
 
 	public final ImmutableCollection<StorageWatcherComponent> components;
@@ -75,7 +75,7 @@ public class StorageWatcher extends Thread {
 							continue;
 						} else if (component.properties.eventsToWatch.contains((WatchEvent.Kind<Path>) kind) &&
 								(component.properties.isWatchingAllFiles() || component.properties.files.contains(filename.toString()))) {
-							component.properties.onChanged.onChanged();
+							component.properties.onChanged.onChanged(component.properties.directory.toString(), filename.toString());
 						}
 						boolean valid = wk.reset();
 						if (!valid) { break; }

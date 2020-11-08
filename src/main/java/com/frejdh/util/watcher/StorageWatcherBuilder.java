@@ -25,7 +25,7 @@ public class StorageWatcherBuilder {
 	private final Set<WatchEvent.Kind<Path>> eventsToWatch = new HashSet<>();
 	private final Set<String> filesToLimitTo = new HashSet<>();
 	private final Set<String> directoriesToWatch = new HashSet<>();
-	private StorageWatcher.OnChanged onChanged = () -> { };
+	private StorageWatcher.OnChanged onChanged = (directory, filename) -> { };
 	private Long watcherInterval;
 	private TimeUnit watcherIntervalUnit;
 
@@ -165,8 +165,8 @@ public class StorageWatcherBuilder {
 	 * Set what to do whenever an event is detected. For example:
 	 * <code>
 	 * new StorageWatcherBuilder()
-	 *     .onChanged(() -> {
-	 *         System.out.println("An event was detected!");
+	 *     .onChanged((directory, filename) -> {
+	 *         System.out.println("Affected directory: " + directory + ", and file: " + filename);
 	 *     })
 	 *     .start();
 	 * </code>

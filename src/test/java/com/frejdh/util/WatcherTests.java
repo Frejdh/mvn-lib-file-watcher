@@ -40,7 +40,7 @@ public class WatcherTests {
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
-				.onChanged(() -> {
+				.onChanged((dir, file) -> {
 					flagCreate = true;
 					logger.info("Flag Create set");
 				})
@@ -59,14 +59,14 @@ public class WatcherTests {
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
-				.onChanged(() -> {
+				.onChanged((dir, file) -> {
 					flagCreate = true;
 					logger.info("Flag Create set");
 				})
 				.createNext()
 				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
 				.watchFile(filename)
-				.onChanged(() -> {
+				.onChanged((dir, file) -> {
 					flagModify = true;
 					logger.info("Flag Modify set");
 				})
@@ -88,7 +88,7 @@ public class WatcherTests {
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
 				.watchDirectory("")
-				.onChanged(() -> {
+				.onChanged((dir, file) -> {
 					flagModify = true;
 					logger.info("Flag Modify set");
 				})
@@ -111,7 +111,7 @@ public class WatcherTests {
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
-				.onChanged(() -> {
+				.onChanged((dir, file) -> {
 					flagCreate = true;
 					numberOfInvokes.getAndIncrement();
 					logger.info("Flag Create set");
@@ -137,9 +137,9 @@ public class WatcherTests {
 				.specifyEvent(StandardWatchEventKinds.ENTRY_DELETE)
 				.watchDirectory("")
 				.watchFile(filename)
-				.onChanged(() -> {
+				.onChanged((directory, file) -> {
 					flagDelete = true;
-					logger.info("Flag Delete set");
+					logger.info(String.format("Flag Delete set for %s, %s", directory, file));
 				})
 				.build();
 		watcher.start();
