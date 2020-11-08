@@ -131,7 +131,6 @@ public class WatcherTests {
 	@Test
 	public void deleteFlagWorks() throws Exception {
 		String filename = FileHelper.nextFilename();
-
 		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_DELETE)

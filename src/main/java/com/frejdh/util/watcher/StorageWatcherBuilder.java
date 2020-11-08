@@ -2,8 +2,13 @@ package com.frejdh.util.watcher;
 
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,8 +17,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Builder for the @{@link StorageWatcher} class.
@@ -23,8 +30,8 @@ public class StorageWatcherBuilder {
 
 	private StorageWatcherBuilder parentBuilder = null;
 	private final Set<WatchEvent.Kind<Path>> eventsToWatch = new HashSet<>();
-	private final Set<String> filesToLimitTo = new HashSet<>();
-	private final Set<String> directoriesToWatch = new HashSet<>();
+	private final Set<URI> filesToLimitTo = new HashSet<>();
+	private final Set<URI> directoriesToWatch = new HashSet<>();
 	private StorageWatcher.OnChanged onChanged = (directory, filename) -> { };
 	private Long watcherInterval;
 	private TimeUnit watcherIntervalUnit;
@@ -36,6 +43,18 @@ public class StorageWatcherBuilder {
 
 	private StorageWatcherBuilder(StorageWatcherBuilder parent) {
 		this.parentBuilder = parent;
+	}
+
+	private URI toClasspath(String path) {
+		try {
+			URL url = this.getClass().getClassLoader().getResource("");
+			if (!path.isEmpty()) {
+				url = new URL(url, path);
+			}
+			return URI.create(Objects.requireNonNull(url).toURI().toString());
+		} catch (URISyntaxException | MalformedURLException e) {
+			return URI.create(path);
+		}
 	}
 
 	/**
@@ -85,7 +104,11 @@ public class StorageWatcherBuilder {
 	 * @return The builder reference
 	 */
 	public StorageWatcherBuilder watchFile(String filename) {
-		filesToLimitTo.add(filename);
+		URI uri = URI.create(filename);
+		if (uri.isAbsolute())
+			filesToLimitTo.add(uri);
+		else
+			filesToLimitTo.add(toClasspath(filename));
 		return this;
 	}
 
@@ -95,7 +118,7 @@ public class StorageWatcherBuilder {
 	 * @return The builder reference
 	 */
 	public StorageWatcherBuilder watchFiles(String... filenames) {
-		filesToLimitTo.addAll(Arrays.asList(filenames));
+		watchFiles(Arrays.asList(filenames));
 		return this;
 	}
 
@@ -103,7 +126,9 @@ public class StorageWatcherBuilder {
 	 * See {@link #watchFiles(String...)}.
 	 */
 	public StorageWatcherBuilder watchFiles(Collection<String> filenames) {
-		filesToLimitTo.addAll(filenames);
+		for (String file : filenames) {
+			watchFile(file);
+		}
 		return this;
 	}
 
@@ -113,7 +138,11 @@ public class StorageWatcherBuilder {
 	 * @return The same builder reference
 	 */
 	public StorageWatcherBuilder watchDirectory(String directory) {
-		directoriesToWatch.add(directory);
+		URI uri = URI.create(directory);
+		if (uri.isAbsolute())
+			directoriesToWatch.add(uri);
+		else
+			directoriesToWatch.add(toClasspath(directory));
 		return this;
 	}
 
@@ -123,7 +152,7 @@ public class StorageWatcherBuilder {
 	 * @return The same builder reference
 	 */
 	public StorageWatcherBuilder watchDirectories(String... directories) {
-		directoriesToWatch.addAll(Arrays.asList(directories));
+		watchDirectories(Arrays.asList(directories));
 		return this;
 	}
 
@@ -131,7 +160,9 @@ public class StorageWatcherBuilder {
 	 * See {@link #watchDirectories(String...)}.
 	 */
 	public StorageWatcherBuilder watchDirectories(Collection<String> directories) {
-		directoriesToWatch.addAll(directories);
+		for (String dir : directories) {
+			watchDirectory(dir);
+		}
 		return this;
 	}
 
@@ -234,13 +265,14 @@ public class StorageWatcherBuilder {
 	 * @param filenames The files to watch.
 	 * @return A map with the directory as key, and a collection of files as the value.
 	 */
-	private Map<String, Set<String>> groupByDirectories(Set<String> directories, Set<String> filenames) {
+	private Map<String, Set<String>> groupByDirectories(Set<URI> directories, Set<URI> filenames) {
 		Map<String, Set<String>> group = new HashMap<>();
-
-		directories.forEach(dir -> group.put(FileSystems.getDefault().getPath(dir).toAbsolutePath().toString(), new HashSet<>()));
+		directories.forEach(dir -> {
+			group.put(Paths.get(dir).toAbsolutePath().toString(), new HashSet<>());
+		});
 
 		filenames.forEach(file -> {
-			Path absolutePath = FileSystems.getDefault().getPath(file).toAbsolutePath();
+			Path absolutePath = Paths.get(file).toAbsolutePath();
 			String parentDir = absolutePath.getParent() != null ? absolutePath.getParent().toString() : "";
 			Set<String> set = group.getOrDefault(parentDir, new HashSet<>());
 			set.add(absolutePath.getFileName().toString());

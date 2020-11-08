@@ -1,6 +1,8 @@
 package com.frejdh.util.watcher;
 import com.frejdh.util.ImmutableCollection;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -84,7 +86,10 @@ public class StorageWatcher extends Thread {
 				Thread.sleep(intervalUnit.toMillis(interval));
 			}
 		} catch (Exception e) {
-			Logger.getGlobal().severe(String.format("[%s] %s", e.getClass(), e.getMessage()));
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String stacktrace = errors.toString();
+			Logger.getGlobal().severe(e.toString() + ". " + stacktrace);
 		}
 	}
 
