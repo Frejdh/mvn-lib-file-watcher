@@ -44,7 +44,7 @@ public class WatcherTests {
 					flagCreate = true;
 					logger.info("Flag Create set");
 				})
-				.buildComponents();
+				.build();
 		watcher.start();
 		FileHelper.createFile(filename);
 		Thread.sleep(DEFAULT_SLEEP);
@@ -70,7 +70,7 @@ public class WatcherTests {
 					flagModify = true;
 					logger.info("Flag Modify set");
 				})
-				.buildComponents();
+				.build();
 		watcher.start();
 
 		FileHelper.createFile(filename);
@@ -92,7 +92,7 @@ public class WatcherTests {
 					flagModify = true;
 					logger.info("Flag Modify set");
 				})
-				.buildComponents();
+				.build();
 		watcher.start();
 
 
@@ -116,7 +116,7 @@ public class WatcherTests {
 					numberOfInvokes.getAndIncrement();
 					logger.info("Flag Create set");
 				})
-				.buildComponents();
+				.build();
 		watcher.start();
 
 
@@ -141,7 +141,7 @@ public class WatcherTests {
 					flagDelete = true;
 					logger.info("Flag Delete set");
 				})
-				.buildComponents();
+				.build();
 		watcher.start();
 
 		FileHelper.createFile(filename);

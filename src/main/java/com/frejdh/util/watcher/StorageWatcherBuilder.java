@@ -155,7 +155,7 @@ public class StorageWatcherBuilder {
 
 	/**
 	 * Creates a new Watcher that can be configured.
-	 * Not to be misstaken for {@link #buildComponents()}
+	 * Not to be misstaken for {@link #build()}
 	 * @return A <strong>new</strong> builder instance
 	 */
 	public StorageWatcherBuilder createNext() {
@@ -166,7 +166,7 @@ public class StorageWatcherBuilder {
 	 * Builds the {@link StorageWatcher} instance.
 	 * @return A watcher instance.
 	 */
-	public StorageWatcher buildComponents() {
+	public StorageWatcher build() {
 		return new StorageWatcher(
 				buildComponents(new ArrayList<>()),
 				watcherInterval,
