@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Watch files inside a directory.
  */
-public class StorageWatcher extends Thread {
+public class StorageWatcher {
 
 	public interface OnChanged {
 		void onChanged(String directory, String filename);
@@ -44,55 +44,74 @@ public class StorageWatcher extends Thread {
 		this(components, DEFAULT_INTERVAL, DEFAULT_INTERVAL_UNIT);
 	}
 
-	@SuppressWarnings("BusyWait")
-	public void run() {
-		if (components == null || components.isEmpty()) {
-			return;
-		}
+	private final Thread watcherExecutionThread = new Thread() {
+		/**
+		 * <strong>Do not use this method to start the thread</strong>. Please use {@link #start()} instead! <br>
+		 * Original documentation: {@link Thread#run}
+		 */
+		@SuppressWarnings("BusyWait")
+		public void run() {
+			if (components == null || components.isEmpty()) {
+				return;
+			}
 
-		try {
-			while (true) {
-				for (StorageWatcherComponent component : components) {
-					WatchKey wk;
-					try {
-						wk = component.watcher.poll(50, TimeUnit.MILLISECONDS);
-					} catch (InterruptedException e) {
-						return;
-					}
+			try {
+				while (true) {
+					for (StorageWatcherComponent component : components) {
+						WatchKey wk;
+						try {
+							wk = component.watcher.poll(50, TimeUnit.MILLISECONDS);
+						} catch (InterruptedException e) {
+							return;
+						}
 
-					if (wk == null) {
-						Thread.yield();
-						continue;
-					}
-
-					for (WatchEvent<?> event : wk.pollEvents()) {
-						WatchEvent.Kind<?> kind = event.kind();
-
-						@SuppressWarnings("unchecked")
-						WatchEvent<Path> ev = (WatchEvent<Path>) event;
-						Path filename = ev.context();
-
-						if (kind == StandardWatchEventKinds.OVERFLOW) {
+						if (wk == null) {
 							Thread.yield();
 							continue;
-						} else if (component.properties.eventsToWatch.contains((WatchEvent.Kind<Path>) kind) &&
-								(component.properties.isWatchingAllFiles() || component.properties.files.contains(filename.toString()))) {
-							component.properties.onChanged.onChanged(component.properties.directory.toString(), filename.toString());
 						}
-						boolean valid = wk.reset();
-						if (!valid) { break; }
+
+						for (WatchEvent<?> event : wk.pollEvents()) {
+							WatchEvent.Kind<?> kind = event.kind();
+
+							@SuppressWarnings("unchecked")
+							WatchEvent<Path> ev = (WatchEvent<Path>) event;
+							Path filename = ev.context();
+
+							if (kind == StandardWatchEventKinds.OVERFLOW) {
+								Thread.yield();
+								continue;
+							} else if (component.properties.eventsToWatch.contains((WatchEvent.Kind<Path>) kind) &&
+									(component.properties.isWatchingAllFiles() || component.properties.files.contains(filename.toString()))) {
+								component.properties.onChanged.onChanged(component.properties.directory.toString(), filename.toString());
+							}
+							boolean valid = wk.reset();
+							if (!valid) { break; }
+						}
 					}
+					Thread.sleep(intervalUnit.toMillis(interval));
 				}
-				Thread.sleep(intervalUnit.toMillis(interval));
+			} catch (Exception e) {
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String stacktrace = errors.toString();
+				Logger.getGlobal().severe(e.toString() + ". " + stacktrace);
 			}
-		} catch (Exception e) {
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String stacktrace = errors.toString();
-			Logger.getGlobal().severe(e.toString() + ". " + stacktrace);
 		}
+	};
+
+	/**
+	 * Start the watcher thread <br>
+	 * Reference documentation: {@link Thread#start}.
+	 */
+	public void start() {
+		watcherExecutionThread.start();
 	}
 
-
-
+	/**
+	 * Get the internal execution thread that the watcher uses.
+	 * @return The used watcher thread.
+	 */
+	public Thread getExecutionThread() {
+		return watcherExecutionThread;
+	}
 }

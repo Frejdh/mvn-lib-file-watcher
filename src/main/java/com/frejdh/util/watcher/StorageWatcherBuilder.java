@@ -169,8 +169,8 @@ public class StorageWatcherBuilder {
 	/**
 	 * Set the interval for checking the directories/files.
 	 * <strong>Shared between all of the watcher components!</strong>
-	 * @param watcherInterval Interval to check. (Null or <= 0) = {@link StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL}
-	 * @param watcherIntervalUnit Unit for the interval. Null = {@link StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL_UNIT}
+	 * @param watcherInterval Interval to check. (Null or <= 0) = {@value StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL}
+	 * @param watcherIntervalUnit Unit for the interval. Null = {@value StorageWatcherProperties#DEFAULT_WATCHER_INTERVAL_UNIT}
 	 * @return The same builder reference
 	 */
 	public StorageWatcherBuilder interval(@Nullable Long watcherInterval, @Nullable TimeUnit watcherIntervalUnit) {
@@ -190,6 +190,13 @@ public class StorageWatcherBuilder {
 	 */
 	public StorageWatcherBuilder interval(@Nullable Integer watcherInterval, @Nullable TimeUnit watcherIntervalUnit) {
 		return interval((watcherInterval != null) ? Integer.toUnsignedLong(watcherInterval) : null, watcherIntervalUnit);
+	}
+
+	/**
+	 * Uses {@link #interval(Long, TimeUnit)} with default values.
+	 */
+	public StorageWatcherBuilder interval() {
+		return interval((Integer) null, null);
 	}
 
 	/**
