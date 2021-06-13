@@ -7,11 +7,11 @@
     <parent>
         <groupId>com.frejdh.util</groupId>
         <artifactId>library-master-pom</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.3</version>
     </parent>
 
     <artifactId>file-watcher</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <properties>

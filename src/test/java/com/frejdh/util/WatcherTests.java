@@ -15,7 +15,8 @@ import static com.frejdh.util.FileHelper.CleanupAction;
 
 public class WatcherTests {
 
-	private Logger logger = Logger.getLogger("WatcherTests");
+	private final Logger logger = Logger.getLogger("WatcherTests");
+	private StorageWatcher watcher;
 
 	private boolean flagCreate;
 	private boolean flagModify;
@@ -31,13 +32,16 @@ public class WatcherTests {
 	@After
 	public void cleanup() throws Exception {
 		FileHelper.cleanup();
+		if (watcher != null) {
+			watcher.stop();
+		}
 	}
 
 	@Test
 	public void watchOneFileCreation() throws Exception {
 		String filename = FileHelper.nextFilename();
 
-		StorageWatcher watcher = new StorageWatcherBuilder()
+		watcher = new StorageWatcherBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
@@ -56,7 +60,7 @@ public class WatcherTests {
 	public void nestedBuilderCreateAndModify() throws Exception {
 		String filename = FileHelper.nextFilename();
 
-		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+		watcher = StorageWatcherBuilder.getBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
@@ -85,7 +89,7 @@ public class WatcherTests {
 	public void watchDirectoryForModifications() throws Exception {
 		String filename = FileHelper.nextFilename();
 
-		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+		watcher = StorageWatcherBuilder.getBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
 				.watchDirectory("")
@@ -108,7 +112,7 @@ public class WatcherTests {
 		String filename = FileHelper.nextFilename();
 
 		AtomicInteger numberOfInvokes = new AtomicInteger();
-		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+		watcher = StorageWatcherBuilder.getBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_CREATE)
 				.watchFile(filename)
@@ -132,7 +136,7 @@ public class WatcherTests {
 	@Test
 	public void deleteFlagWorks() throws Exception {
 		String filename = FileHelper.nextFilename();
-		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+		watcher = StorageWatcherBuilder.getBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_DELETE)
 				.watchDirectory("")
@@ -153,7 +157,7 @@ public class WatcherTests {
 	@Test
 	public void modifyExistingResourceFile() throws Exception {
 		String filename = "persistence/file_to_watch.txt";
-		StorageWatcher watcher = StorageWatcherBuilder.getBuilder()
+		watcher = StorageWatcherBuilder.getBuilder()
 				.interval(10, TimeUnit.MILLISECONDS)
 				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
 				.watchFile(filename)
@@ -167,5 +171,30 @@ public class WatcherTests {
 		FileHelper.writeToExistingFile(filename, "test of watcher", CleanupAction.EMPTY);
 		Thread.sleep(DEFAULT_SLEEP);
 		Assert.assertTrue("Flag Delete not set", flagModify);
+	}
+
+	@Test
+	public void watcherCanBeStopped() throws Exception {
+		String filename = "persistence/file_to_watch.txt";
+		watcher = StorageWatcherBuilder.getBuilder()
+				.interval(10, TimeUnit.MILLISECONDS)
+				.specifyEvent(StandardWatchEventKinds.ENTRY_MODIFY)
+				.watchFile(filename)
+				.onChanged((directory, file) -> {
+					flagModify = true;
+					logger.info(String.format("Flag modify set for %s, %s", directory, file));
+				})
+				.build();
+
+		watcher.start();
+		Thread.sleep(100);
+		Assert.assertTrue(watcher.getExecutionThread().isAlive());
+
+		watcher.stop();
+		Thread.sleep(100);
+		Assert.assertFalse(watcher.getExecutionThread().isAlive());
+
+		FileHelper.writeToExistingFile(filename, "test of watcher", CleanupAction.EMPTY);
+		Assert.assertFalse("Flag Delete set, but shouldn't have been", flagModify);
 	}
 }

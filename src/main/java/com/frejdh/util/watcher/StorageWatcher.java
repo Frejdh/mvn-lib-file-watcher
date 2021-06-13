@@ -20,6 +20,7 @@ public class StorageWatcher {
 	public final ImmutableCollection<StorageWatcherComponent> components;
 	public final long interval;
 	public final TimeUnit intervalUnit;
+	private volatile boolean shouldRun;
 
 	public static final long DEFAULT_INTERVAL = 10;
 	public static final TimeUnit DEFAULT_INTERVAL_UNIT = TimeUnit.SECONDS;
@@ -54,9 +55,10 @@ public class StorageWatcher {
 			if (components == null || components.isEmpty()) {
 				return;
 			}
+			shouldRun = true;
 
 			try {
-				while (true) {
+				while (shouldRun) {
 					for (StorageWatcherComponent component : components) {
 						WatchKey wk;
 						try {
@@ -105,6 +107,14 @@ public class StorageWatcher {
 	 */
 	public void start() {
 		watcherExecutionThread.start();
+	}
+
+	/**
+	 * Stop the execution of the watcher thread.
+	 * Use this method instead of the stopping the execution thread manually.
+	 */
+	public void stop() {
+		shouldRun = false;
 	}
 
 	/**
