@@ -100,7 +100,7 @@ watcher.start();
 <repositories> <!-- Required in order to resolve this package -->
     <repository>
         <id>mvn-lib-file-watcher</id>
-        <url>https://raw.github.com/Frejdh/mvn-lib-file-watcher/mvn-repo/</url>
+        <url>https://raw.github.com/Frejdh/mvn-lib-file-watcher/releases/</url>
     </repository>
 </repositories>
 ```
